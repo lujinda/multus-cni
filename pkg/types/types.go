@@ -51,6 +51,7 @@ type NetConf struct {
 	RuntimeConfig *RuntimeConfig `json:"runtimeConfig,omitempty"`
 	// WholeRuntimeConfig Save all RuntimeConfig parameters submitted by the container runtime.
 	// Can supports all capabilities for cluster networks
+	// Not all content will be passed to CNI, it will be passed according to the capabilities rules.
 	WholeRuntimeConfig map[string]interface{} `json:"-"`
 	// Default network readiness options
 	ReadinessIndicatorFile string `json:"readinessindicatorfile"`
