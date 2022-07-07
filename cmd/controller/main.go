@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/k8snetworkplumbingwg/multus-cni.v3/pkg/config"
 	"gopkg.in/k8snetworkplumbingwg/multus-cni.v3/pkg/logging"
@@ -71,6 +72,7 @@ const (
 	multusMasterCNIFileVarName    = "multus-master-cni-file"
 	multusNamespaceIsolation      = "namespace-isolation"
 	multusReadinessIndicatorFile  = "readiness-indicator-file"
+	multusCapabilities            = "multus-capabilities"
 )
 
 func main() {
@@ -94,6 +96,7 @@ func main() {
 	additionalBinDir := flag.String(multusAdditionalBinDirVarName, defaultMultusAdditionalBinDir, "Additional binary directory to specify in the configurations. Used only with --multus-conf-file=auto.")
 	readinessIndicator := flag.String(multusReadinessIndicatorFile, defaultMultusReadinessIndicatorFile, "Which file should be used as the readiness indicator. Used only with --multus-conf-file=auto.")
 	multusKubeconfig := flag.String(multusKubeconfigPath, defaultMultusKubeconfigPath, "The path to the kubeconfig")
+	multusCapabilities := flag.String(multusCapabilities, "", "capabilities of multus-cni, multiple separated by commas")
 	overrideNetworkName := flag.Bool("override-network-name", false, "Used when we need overrides the name of the multus configuration with the name of the delegated primary CNI")
 	flag.BoolVar(&versionOpt, "version", false, "Show application version")
 	flag.BoolVar(&versionOpt, "v", false, "Show application version")
@@ -174,6 +177,14 @@ func main() {
 			logOptions := &config.LogOptions{}
 			config.MutateLogOptions(logOptions, logOptionFuncs...)
 			configurationOptions = append(configurationOptions, config.WithLogOptions(logOptions))
+		}
+
+		if *multusCapabilities != "" {
+			enabledCapabilities := strings.Split(*multusCapabilities, ",")
+			for i, c := range enabledCapabilities {
+				enabledCapabilities[i] = strings.TrimSpace(c)
+			}
+			configurationOptions = append(configurationOptions, config.WithMultusCapabilities(enabledCapabilities))
 		}
 
 		multusConfig, err := config.NewMultusConfig(multusPluginName, *cniVersion, *multusKubeconfig, configurationOptions...)

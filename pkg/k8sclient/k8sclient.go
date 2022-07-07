@@ -41,6 +41,7 @@ import (
 	nettypes "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	netclient "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1"
 	netutils "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/utils"
+
 	"gopkg.in/k8snetworkplumbingwg/multus-cni.v3/pkg/kubeletclient"
 	"gopkg.in/k8snetworkplumbingwg/multus-cni.v3/pkg/logging"
 	"gopkg.in/k8snetworkplumbingwg/multus-cni.v3/pkg/types"
@@ -51,6 +52,16 @@ const (
 	defaultNetAnnot        = "v1.multus-cni.io/default-network"
 	networkAttachmentAnnot = "k8s.v1.cni.cncf.io/networks"
 )
+
+func IsNeedMultus(pod *v1.Pod) bool {
+	if _, ok := pod.Annotations[networkAttachmentAnnot]; ok {
+		return true
+	}
+	if _, ok := pod.Annotations[defaultNetAnnot]; ok {
+		return true
+	}
+	return false
+}
 
 // NoK8sNetworkError indicates error, no network in kubernetes
 type NoK8sNetworkError struct {

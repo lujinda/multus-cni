@@ -75,6 +75,13 @@ type RuntimeConfig struct {
 	InfinibandGUID    string          `json:"infinibandGUID,omitempty"`
 	DeviceID          string          `json:"deviceID,omitempty"`
 	CNIDeviceInfoFile string          `json:"CNIDeviceInfoFile,omitempty"`
+	// PodAnnotations Containerd supports passing down Pod's annotations
+	// https://github.com/containerd/containerd/pull/5026
+	PodAnnotations map[string]string `json:"io.kubernetes.cri.pod-annotations,omitempty"`
+	// Deprecated
+	// Annotations is the internal implementation of ASI.
+	// The new version of conatinerd has its own implementation. Please refer to the fields above.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // PortMapEntry for CNI PortMapEntry

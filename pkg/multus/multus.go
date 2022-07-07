@@ -36,6 +36,7 @@ import (
 	"github.com/vishvananda/netlink"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8snet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/wait"
 
@@ -548,6 +549,22 @@ func getPod(kubeClient *k8s.ClientInfo, k8sArgs *types.K8sArgs, warnOnly bool) (
 	return pod, nil
 }
 
+func fastDetermineUseLocalDelegate(n *types.NetConf) bool {
+	if n.ClusterNetwork != "" {
+		return false
+	}
+	podAnnos := n.RuntimeConfig.PodAnnotations
+	if len(podAnnos) == 0 {
+		podAnnos = n.RuntimeConfig.Annotations
+	}
+	if len(podAnnos) == 0 {
+		return false
+	}
+	return !k8s.IsNeedMultus(&v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{Annotations: podAnnos},
+	})
+}
+
 // CmdAdd ...
 func CmdAdd(args *skel.CmdArgs, exec invoke.Exec, kubeClient *k8s.ClientInfo) (cnitypes.Result, error) {
 	n, err := types.LoadNetConf(args.StdinData)
@@ -556,6 +573,11 @@ func CmdAdd(args *skel.CmdArgs, exec invoke.Exec, kubeClient *k8s.ClientInfo) (c
 		return nil, cmdErr(nil, "error loading netconf: %v", err)
 	}
 	logging.Debugf("Whole RuntimeConfig: %+v", n.WholeRuntimeConfig)
+
+	if fastDetermineUseLocalDelegate(n) {
+		logging.Debugf("Judging by the Annotations passed by Container Runtime, this request does not need to access kube-apiserver")
+		n.Kubeconfig = ""
+	}
 
 	kubeClient, err = k8s.GetK8sClient(n.Kubeconfig, kubeClient)
 	if err != nil {
@@ -770,6 +792,11 @@ func CmdDel(args *skel.CmdArgs, exec invoke.Exec, kubeClient *k8s.ClientInfo) er
 	logging.Debugf("CmdDel: %v, %v, %v", args, exec, kubeClient)
 	if err != nil {
 		return err
+	}
+
+	if fastDetermineUseLocalDelegate(in) {
+		logging.Debugf("Judging by the Annotations passed by Container Runtime, this request does not need to access kube-apiserver")
+		in.Kubeconfig = ""
 	}
 
 	skipStatusUpdate := false

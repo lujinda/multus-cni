@@ -206,6 +206,14 @@ func WithOverriddenName(networkName string) Option {
 	}
 }
 
+func WithMultusCapabilities(enabledCapabilities []string) Option {
+	return func(conf *MultusConf) {
+		for _, capability := range enabledCapabilities {
+			conf.Capabilities[capability] = true
+		}
+	}
+}
+
 func withCapabilities(cniData interface{}) Option {
 	var enabledCapabilities []string
 	var pluginsList []interface{}
