@@ -55,6 +55,7 @@ type MultusConf struct {
 	RawNonIsolatedNamespaces string          `json:"globalNamespaces,omitempty"`
 	ReadinessIndicatorFile   string          `json:"readinessindicatorfile,omitempty"`
 	Type                     string          `json:"type"`
+	CNIConfigFileName        string          `json:"cniConfigFileName,omitempty"`
 }
 
 // LogOptions specifies the configuration of the log
@@ -211,6 +212,12 @@ func WithMultusCapabilities(enabledCapabilities []string) Option {
 		for _, capability := range enabledCapabilities {
 			conf.Capabilities[capability] = true
 		}
+	}
+}
+
+func WithMultusCNIConfigFileName(cfName string) Option {
+	return func(conf *MultusConf) {
+		conf.CNIConfigFileName = cfName
 	}
 }
 

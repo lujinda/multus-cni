@@ -27,9 +27,9 @@ import (
 
 // MultusDefaultNetworkName holds the default name of the multus network
 const (
-	multusConfigFileName     = "00-multus.conf"
-	MultusDefaultNetworkName = "multus-cni-network"
-	userRWPermission         = 0600
+	MultusDefaultConfigFileName = "00-multus.conf"
+	MultusDefaultNetworkName    = "multus-cni-network"
+	userRWPermission            = 0600
 )
 
 // Manager monitors the configuration of the primary CNI plugin, and
@@ -73,7 +73,7 @@ func newManager(config MultusConf, multusConfigDir string, defaultCNIPluginName 
 		configWatcher:        watcher,
 		multusConfig:         &config,
 		multusConfigDir:      multusConfigDir,
-		multusConfigFilePath: cniPluginConfigFilePath(multusConfigDir, multusConfigFileName),
+		multusConfigFilePath: cniPluginConfigFilePath(multusConfigDir, config.CNIConfigFileName),
 		primaryCNIConfigPath: cniPluginConfigFilePath(multusConfigDir, defaultCNIPluginName),
 	}
 
